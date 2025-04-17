@@ -922,10 +922,19 @@ message GetArticlesBySourceRequest {
     // How many articles to get at most.
     int32 size = 3;
 
-    // Filter articles that is posted before this time.
+    /*
+    Filter articles that is posted before this time. Default is 0 which means
+    no article will be returned if this is not specified. For the first
+    request of the pagination, it's better to use the current timestamp (in
+    milliseconds) or a very large number that is larger than the current
+    timestamp.
+    */
     int64 postedBefore = 4;
 
-    // Filter articles that is larger than this if postedAt equals.
+    /*
+    Filter articles that is larger than this if the article's postedAt equals
+    postedBefore in param.
+    */
     string articleID = 5;
 }
 
@@ -1022,11 +1031,17 @@ message GetArticlesBySourceWithUserMarkingRequest {
     // How many articles to return at most.
     int32 size = 3;
 
-    // Filter articles that is posted before or equal to this time.
+    /*
+    Filter articles that is posted before or equal to this time. Default is 0
+    which means no article will be returned if this is not specified. For
+    the first request of the pagination, it's better to use the current
+    timestamp (in milliseconds) or a very large number that is larger than
+    the current timestamp.
+    */
     int64 postedBefore = 4;
 
     /*
-    If there are articles posted at the same time as postedAt, return the
+    If there are articles posted at the same time as postedBefore, return the
     articles that ID is larger than this.
     */
     string articleID = 5;
@@ -1461,7 +1476,10 @@ message ExportOPMLRequest {
 message GetMyFoldersRequest {
     string token = 1;
 
-    // How many folders to return at most.
+    /*
+    How many folders to return at most. Default is 0. Must specify otherwise
+    it will just return an empty response.
+    */
     int32 size = 2;
 
     // Only return folders that with a position lager than this.
