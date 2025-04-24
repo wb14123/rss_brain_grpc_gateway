@@ -2,10 +2,11 @@ package main
 
 import (
 	"context"
+	"embed"
 	"errors"
 	"flag"
 	"net/http"
-	"os"
+	"strconv"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"google.golang.org/grpc"
@@ -15,14 +16,14 @@ import (
 	gw "binwang.me/rss/grpc-gateway/gen/go" // Update
 )
 
-var (
-	// command-line options:
-	// gRPC server endpoint
-	grpcServerEndpoint = flag.String("grpc-server-endpoint", "grpc.rssbrain.com:443", "gRPC server endpoint")
-)
+var grpcServerEndpoint = flag.String("grpc-server-endpoint", "grpc.rssbrain.com:443", "gRPC server endpoint")
+var serverPort = flag.Int("port", 8881, "server port")
+
+//go:embed gen/go/grpc-api.swagger.json
+var embedFS embed.FS
 
 func serveSwagger(mux *http.ServeMux) {
-	swaggerFile, err := os.ReadFile("gen/go/grpc-api.swagger.json")
+	swaggerFile, err := embedFS.ReadFile("gen/go/grpc-api.swagger.json")
 	if err != nil {
 		grpclog.Fatal(err)
 	}
@@ -65,7 +66,7 @@ func run() error {
 	httpMux.Handle("/", grpcGatewayMux)
 
 	// Start HTTP server (and proxy calls to gRPC server endpoint)
-	return http.ListenAndServe(":8881", httpMux)
+	return http.ListenAndServe(":"+strconv.Itoa(*serverPort), httpMux)
 }
 
 func main() {
