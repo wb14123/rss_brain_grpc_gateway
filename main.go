@@ -11,6 +11,7 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/grpclog"
 
 	gw "binwang.me/rss/grpc-gateway/gen/go" // Update
@@ -18,6 +19,7 @@ import (
 
 var grpcServerEndpoint = flag.String("grpc-server-endpoint", "grpc.rssbrain.com:443", "gRPC server endpoint")
 var serverPort = flag.Int("port", 8881, "server port")
+var grpcServerInsecure = flag.Bool("insecure", false, "if the grpc server is insecure (no SSL)")
 
 //go:embed gen/go/grpc-api.swagger.json
 var embedFS embed.FS
@@ -46,6 +48,9 @@ func run() error {
 	// Note: Make sure the gRPC server is running properly and accessible
 	grpcGatewayMux := runtime.NewServeMux()
 	creds := credentials.NewClientTLSFromCert(nil, "") // 'nil' means use system roots
+	if *grpcServerInsecure {
+		creds = insecure.NewCredentials()
+	}
 	opts := []grpc.DialOption{grpc.WithTransportCredentials(creds)}
 	err := errors.Join(
 		gw.RegisterArticleAPIHandlerFromEndpoint(ctx, grpcGatewayMux, *grpcServerEndpoint, opts),
